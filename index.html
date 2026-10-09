@@ -28,7 +28,7 @@ nav button{background:none;border:0;color:#b8a5b4;display:grid;justify-items:cen
 .pin{position:relative;width:46px;height:46px;border:2px solid #ee9dbe;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#88445b,#231424);box-shadow:0 0 0 4px #61223b66,0 6px 19px #0009;color:white;font-size:16px;font-weight:700}
 .pin.member::after{content:"";position:absolute;right:-3px;bottom:0;border-radius:50%;background:var(--green);border:2px solid #241b27;width:10px;height:10px}
 .pin.event{width:43px;height:43px;border-color:#fd9bbb;background:#5a1f3c;border-radius:14px;transform:rotate(-12deg);font-size:21px}.pin.circle{width:43px;height:43px;border-color:#bea0df;background:#4c2c58;border-radius:16px}
-.leaflet-tile-pane{filter:grayscale(1) invert(1) brightness(.66) contrast(1.12)}
+/* Avoid GPU filters on the Leaflet tile pane: mobile Safari may clip or drop tiles. */
 .leaflet-div-icon{border:0!important;background:transparent!important}.leaflet-control-zoom{display:none}
 .leaflet-control-attribution{font-size:9px!important;background:#110d16c9!important;color:#d3b6c5!important}.leaflet-control-attribution a{color:#ffbcd4!important}
 .overlay{display:none;position:absolute;z-index:780;inset:0;background:#0009}.overlay.show{display:block}
@@ -103,9 +103,12 @@ $("overlay").onclick=close;$("cities").onclick=cityPicker;$("filters").onclick=f
 document.querySelectorAll("[data-kind]").forEach(function(b){b.onclick=function(){setKind(b.dataset.kind)}});
 document.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){document.querySelectorAll("[data-tab]").forEach(function(x){x.classList.toggle("active",x===b)});tab(b.dataset.tab)}});
 if(typeof L==="undefined"){$("maperror").style.display="block";announce("Map library did not load. Check your internet connection.");return}
-map=L.map("map",{zoomControl:false,worldCopyJump:true}).setView(cities.dc.point,13);
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'}).addTo(map);
+map=L.map("map",{zoomControl:false,worldCopyJump:true,fadeAnimation:false,zoomAnimation:false,markerZoomAnimation:false}).setView(cities.dc.point,13);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,keepBuffer:4,updateWhenIdle:true,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'}).addTo(map);
 render();
+requestAnimationFrame(function(){map.invalidateSize({pan:false});});
+window.addEventListener("resize",function(){map.invalidateSize({pan:false});},{passive:true});
+window.addEventListener("orientationchange",function(){setTimeout(function(){map.invalidateSize({pan:false})},250)},{passive:true});
 })();
 </script>
 </body></html>
