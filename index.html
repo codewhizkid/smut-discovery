@@ -104,7 +104,8 @@ document.querySelectorAll("[data-kind]").forEach(function(b){b.onclick=function(
 document.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){document.querySelectorAll("[data-tab]").forEach(function(x){x.classList.toggle("active",x===b)});tab(b.dataset.tab)}});
 if(typeof L==="undefined"){$("maperror").style.display="block";announce("Map library did not load. Check your internet connection.");return}
 map=L.map("map",{zoomControl:false,worldCopyJump:true,fadeAnimation:false,zoomAnimation:false,markerZoomAnimation:false}).setView(cities.dc.point,13);
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,keepBuffer:4,updateWhenIdle:true,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'}).addTo(map);
+var tiles=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,keepBuffer:2,updateWhenIdle:false,updateWhenZooming:false,attribution:'Tiles © Esri — Source: Esri, HERE, Garmin, USGS, OpenStreetMap contributors'}).addTo(map);
+var tileFailures=0;tiles.on("tileerror",function(){tileFailures++;if(tileFailures===5){announce("Map tiles are having trouble loading. Try refreshing or switching networks.");}});
 render();
 requestAnimationFrame(function(){map.invalidateSize({pan:false});});
 window.addEventListener("resize",function(){map.invalidateSize({pan:false});},{passive:true});
