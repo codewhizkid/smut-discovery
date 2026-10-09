@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#100d12">
+<meta name="description" content="SMUT! — map-first queer community discovery. Interactive concept demo using fictional profiles and events.">
+<title>SMUT! — Discovery Map · Interactive Demo</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoakdWjjgC0XY=" crossorigin="">
+<style>
+:root{--bg:#100c12;--card:#1c1420;--plum:#49304a;--ox:#822947;--rose:#efb1ca;--ivory:#f7e9f1;--muted:#bba6b6;--border:#93627b66;--green:#62d99c}
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ivory);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button{font:inherit;cursor:pointer}button:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+#map{position:absolute;inset:0 0 73px;background:#24202b}
+body::before{content:"";pointer-events:none;z-index:390;position:absolute;inset:0 0 73px;background:linear-gradient(#100c12b8,transparent 28%,transparent 58%,#100c1299)}
+header{position:absolute;z-index:500;left:0;right:0;top:0;padding:max(18px,env(safe-area-inset-top)) 16px 0;display:flex;align-items:start;justify-content:space-between;pointer-events:none}
+header>*{pointer-events:auto}.brand{font:bold 46px/.9 Georgia,"Times New Roman",serif;letter-spacing:-4px;color:#f7dae8}.tag{font-size:9px;letter-spacing:2px;color:#e5a4bc;margin-top:11px}.right{display:flex;gap:9px}
+.icon-btn{border:1px solid #c27e9c75;background:#261824e8;color:var(--ivory);border-radius:50%;width:44px;height:44px;display:grid;place-items:center;backdrop-filter:blur(10px);font-size:19px}
+.demo-flag{position:absolute;z-index:490;top:92px;left:50%;transform:translateX(-50%);white-space:nowrap;border:1px solid var(--border);border-radius:99px;padding:5px 12px;background:#120d15d9;color:#f0d1de;font-size:11px}
+.chips{position:absolute;z-index:480;top:129px;left:15px;right:15px;display:flex;gap:7px;overflow:auto;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;border:1px solid #9b6a835c;border-radius:99px;color:#ead0de;background:#251b27ea;padding:9px 13px;font-size:12px}
+.chip.active{background:var(--ox);color:#fff;border-color:#f0b0ca}
+.zoom{position:absolute;z-index:490;top:204px;right:16px;display:grid;gap:8px}
+.legend{position:absolute;z-index:460;bottom:91px;left:14px;display:flex;gap:8px;flex-wrap:wrap}
+.bubble{border:1px solid #a4768b66;border-radius:99px;background:#211724e8;padding:9px 12px;color:#f2dce6;font-size:11px;backdrop-filter:blur(12px)}
+nav{position:absolute;bottom:0;left:0;right:0;z-index:750;display:flex;justify-content:space-around;align-items:start;padding:10px 5px max(11px,env(safe-area-inset-bottom));background:#100c12f7;border-top:1px solid var(--border);min-height:73px;backdrop-filter:blur(15px)}
+nav button{background:none;border:0;color:#b8a5b4;display:grid;justify-items:center;gap:3px;font-size:10px;min-width:50px}nav .symbol{font-size:19px}nav button.active{color:var(--rose)}
+.pin{position:relative;width:46px;height:46px;border:2px solid #ee9dbe;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#88445b,#231424);box-shadow:0 0 0 4px #61223b66,0 6px 19px #0009;color:white;font-size:16px;font-weight:700}
+.pin.member::after{content:"";position:absolute;right:-3px;bottom:0;border-radius:50%;background:var(--green);border:2px solid #241b27;width:10px;height:10px}
+.pin.event{width:43px;height:43px;border-color:#fd9bbb;background:#5a1f3c;border-radius:14px;transform:rotate(-12deg);font-size:21px}.pin.circle{width:43px;height:43px;border-color:#bea0df;background:#4c2c58;border-radius:16px}
+.leaflet-div-icon{border:0!important;background:transparent!important}.leaflet-control-zoom{display:none}
+.leaflet-control-attribution{font-size:9px!important;background:#110d16c9!important;color:#d3b6c5!important}.leaflet-control-attribution a{color:#ffbcd4!important}
+.overlay{display:none;position:absolute;z-index:780;inset:0;background:#0009}.overlay.show{display:block}
+.panel{position:absolute;z-index:790;bottom:76px;left:50%;width:min(440px,calc(100% - 22px));max-height:calc(100dvh - 112px);overflow:auto;transform:translate(-50%,130%);transition:transform .23s ease;background:linear-gradient(145deg,#321d30,#161019 70%);border:1px solid #b6769270;box-shadow:0 18px 65px #000b;border-radius:23px;padding:20px}
+.panel.show{transform:translate(-50%,0)}
+.panel h2{margin:0 0 12px;font-size:23px;letter-spacing:-.6px}.panel p{color:#d6bfcc;line-height:1.55}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.close{border:0;background:none;color:#ecabc6;font-size:23px}
+.profile-head{display:flex;align-items:center;gap:13px;margin:12px 0}.avatar{background:linear-gradient(135deg,#ab6a83,#30182b);height:65px;width:65px;border:1px solid #edabc6;border-radius:18px;display:grid;place-items:center;font:30px Georgia,serif}
+.muted{color:var(--muted);font-size:12px}.online{color:var(--green)}.labels{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}
+.label{background:#45283a;border:1px solid #8d5970;padding:6px 11px;font-size:11px;border-radius:99px}
+.primary{border:1px solid #d56891;color:white;background:linear-gradient(110deg,#73263f,#a83b63);border-radius:12px;padding:13px 17px;width:100%;font-weight:600;margin-top:11px}
+.control{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:14px 0;border-bottom:1px solid #815d744c}
+.control span{font-size:13px}.switch{border:1px solid #a47590;background:#442c3e;color:white;border-radius:99px;padding:7px 12px;min-width:55px}.switch.on{background:#9a2c53}
+.city-buttons{display:flex;gap:8px;flex-wrap:wrap}.city-buttons button{border:1px solid #a57089;border-radius:99px;padding:10px 13px;background:#42283a;color:white}
+.listing{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #74506a88;padding:14px 0;gap:10px}.listing button{border:1px solid #a36d8b;border-radius:99px;background:#472639;color:white;padding:7px 12px}
+.warn{border:1px solid #8d5970;background:#271b28;color:#ebbbd0;padding:11px;border-radius:12px;font-size:12px}
+#toast{position:absolute;z-index:999;bottom:91px;left:50%;transform:translateX(-50%);max-width:95%;min-width:220px;border:1px solid #b77c9b;border-radius:14px;background:#291828f2;color:white;padding:12px 17px;display:none;text-align:center;font-size:12px}
+#maperror{display:none;position:absolute;z-index:400;top:48%;left:50%;transform:translate(-50%,-50%);padding:18px;text-align:center;background:#221627;color:#f1c9d8;border:1px solid var(--border);border-radius:15px;width:min(300px,85%)}
+@media(min-width:800px){.panel{left:auto;right:25px;bottom:95px;transform:translate(0,130%)}.panel.show{transform:translate(0,0)}.brand{font-size:54px}}
+</style>
+</head>
+<body>
+<div id="map" aria-label="Interactive geographic discovery map"></div>
+<div id="maperror">The geographic map couldn't load. Connect to the internet and refresh this page.</div>
+<header><div><div class="brand">SMUT!</div><div class="tag">DESIRE MEETS DISCOVERY</div></div><div class="right"><button class="icon-btn" id="cities" aria-label="Choose a city">⌕</button><button class="icon-btn" id="filters" aria-label="Discovery filters">☷</button></div></header>
+<div class="demo-flag">INTERACTIVE DEMO · FICTIONAL PEOPLE & EVENTS</div>
+<div class="chips"><button data-kind="all" class="chip active">All nearby</button><button data-kind="member" class="chip">Members</button><button data-kind="event" class="chip">Events</button><button data-kind="circle" class="chip">Circles</button></div>
+<div class="zoom"><button class="icon-btn" id="zin" aria-label="Zoom in">+</button><button class="icon-btn" id="zout" aria-label="Zoom out">−</button><button class="icon-btn" id="locate" aria-label="Center map on my location">⌖</button></div>
+<div class="legend"><span class="bubble" id="cityLabel">Washington, DC</span><span class="bubble" id="visibleCount">Demo markers</span></div>
+<nav aria-label="Primary"><button data-tab="map" class="active"><span class="symbol">⌖</span>Map</button><button data-tab="discover"><span class="symbol">◇</span>Discover</button><button data-tab="circles"><span class="symbol">♧</span>Circles</button><button data-tab="events"><span class="symbol">▣</span>Events</button><button data-tab="chats"><span class="symbol">◌</span>Chats</button></nav>
+<div id="overlay" class="overlay"></div><section id="panel" class="panel" aria-label="Discovery details" aria-live="polite"></section><div id="toast" role="status"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var cities={dc:{name:"Washington, DC",point:[38.909,-77.036]},ny:{name:"New York",point:[40.737,-73.991]},sf:{name:"San Francisco",point:[37.779,-122.422]}};
+var data=[
+{id:"m1",city:"dc",type:"member",name:"Alex",age:31,lat:38.9104,lon:-77.0447,interests:["Leather","Community","Gear"],about:"Enjoys conversation, social gatherings, and meeting people with shared interests."},
+{id:"m2",city:"dc",type:"member",name:"Dev",age:35,lat:38.9166,lon:-77.0300,interests:["Rope","Workshops","Art"],about:"Here to explore local events, learn, and make connections."},
+{id:"m3",city:"dc",type:"member",name:"Kai",age:29,lat:38.9049,lon:-77.0242,interests:["Pup play","Community","Leather"],about:"Looking for friends and welcoming queer spaces."},
+{id:"m4",city:"dc",type:"member",name:"Milo",age:36,lat:38.9007,lon:-77.0415,interests:["Fashion","Gear","Events"],about:"Music, nightlife, and interesting people."},
+{id:"e1",city:"dc",type:"event",name:"Leather Social · Example",lat:38.9152,lon:-77.0482,interests:["Leather","Social"],about:"Fictional community meetup for demonstration."},
+{id:"c1",city:"dc",type:"circle",name:"DMV Kink Arts · Example",lat:38.908,lon:-77.0181,interests:["Art","Workshops"],about:"Fictional interest-based Circle."},
+{id:"m5",city:"ny",type:"member",name:"Jules",age:30,lat:40.744,lon:-73.995,interests:["Leather","Events"],about:"Friends, gallery nights, and social events."},
+{id:"m6",city:"ny",type:"member",name:"Noah",age:34,lat:40.731,lon:-73.984,interests:["Rope","Community"],about:"Exploring a new city and new connections."},
+{id:"e2",city:"ny",type:"event",name:"Queer Gear Night · Example",lat:40.739,lon:-74.003,interests:["Gear","Events"],about:"Fictional nightlife event."},
+{id:"c2",city:"ny",type:"circle",name:"NYC Makers · Example",lat:40.729,lon:-73.998,interests:["Art","Community"],about:"Fictional group for creative projects."},
+{id:"m7",city:"sf",type:"member",name:"River",age:33,lat:37.782,lon:-122.417,interests:["Community","Leather"],about:"Curious, kind, and interested in local groups."},
+{id:"m8",city:"sf",type:"member",name:"Sage",age:28,lat:37.775,lon:-122.433,interests:["Rope","Workshops"],about:"Workshops, art and thoughtful conversations."},
+{id:"e3",city:"sf",type:"event",name:"Community Workshop · Example",lat:37.769,lon:-122.417,interests:["Workshops","Community"],about:"Fictional educational workshop."},
+{id:"c3",city:"sf",type:"circle",name:"Bay Area Arts · Example",lat:37.786,lon:-122.431,interests:["Art","Gear"],about:"Fictional interest Circle."}
+];
+var map=null,markers=[],city="dc",kind="all",onlineOnly=false,showMembers=true,locationMarker=null,toastTimer=0;
+function safe(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function announce(msg){$("toast").textContent=msg;$("toast").style.display="block";clearTimeout(toastTimer);toastTimer=setTimeout(function(){$("toast").style.display="none"},3500)}
+function close(){ $("overlay").classList.remove("show");$("panel").classList.remove("show") }
+function open(html){$("panel").innerHTML=html;$("overlay").classList.add("show");$("panel").classList.add("show");var c=$("panel").querySelector(".close");if(c)c.onclick=close}
+function frame(title,inner){return '<div class="panel-head"><h2>'+title+'</h2><button class="close" aria-label="Close panel">×</button></div>'+inner}
+function iconFor(p){if(p.type==="event")return "▣";if(p.type==="circle")return "✦";return safe(p.name.slice(0,1))}
+function markerFor(p){var markerIcon=L.divIcon({className:"",html:'<div class="pin '+p.type+'">'+iconFor(p)+'</div>',iconSize:[48,48],iconAnchor:[24,24]});return L.marker([p.lat,p.lon],{icon:markerIcon,title:p.name+" sample"}).addTo(map).on("click",function(){profile(p)})}
+function visibleItems(){return data.filter(function(p){return p.city===city&&(kind==="all"||p.type===kind)&&(p.type!=="member"||showMembers)&&(!onlineOnly||p.type!=="member"||p.id!=="m3")})}
+function render(){if(!map)return;markers.forEach(function(m){m.remove()});markers=[];visibleItems().forEach(function(p){markers.push(markerFor(p))});$("visibleCount").textContent=markers.length+" sample markers";$("cityLabel").textContent=cities[city].name}
+function setKind(k){kind=k;document.querySelectorAll("[data-kind]").forEach(function(b){b.classList.toggle("active",b.dataset.kind===k)});render()}
+function profile(p){var labels=p.interests.map(function(t){return '<span class="label">'+safe(t)+'</span>'}).join("");var detail=p.type==="member"?'<div class="profile-head"><div class="avatar">'+safe(p.name.charAt(0))+'</div><div><h2>'+safe(p.name)+', '+p.age+'</h2><div class="muted"><span class="online">●</span> Example member · No live presence</div></div></div>':'<h2>'+safe(p.name)+'</h2><p class="muted">Example '+p.type+' · Not a real listing</p>';
+open(frame(p.type==="member"?"Member preview":p.type==="event"?"Event preview":"Circle preview",detail+'<p>'+safe(p.about)+'</p><div class="labels">'+labels+'</div><div class="warn">All profiles, events and locations here are fictional demonstration data. No account or messaging backend is connected.</div><button id="demoAction" class="primary">'+(p.type==="member"?"Request to connect": "View details")+'</button>'));
+$("demoAction").onclick=function(){announce("Preview only — live member accounts will be added later.")}}
+function cityPicker(){open(frame("Choose a city",'<p>Explore realistic map geography with fictional sample markers.</p><div class="city-buttons"><button data-city="dc">Washington, DC</button><button data-city="ny">New York</button><button data-city="sf">San Francisco</button></div><p class="muted">No one is being tracked.</p>'));document.querySelectorAll("[data-city]").forEach(function(b){b.onclick=function(){city=b.dataset.city;map.flyTo(cities[city].point,13);render();close()}})}
+function filters(){open(frame("Discovery filters",'<p class="muted">These settings control fictional demo markers.</p><div class="control"><span>Show sample members</span><button id="members" class="switch '+(showMembers?'on':'')+'">'+(showMembers?'On':'Off')+'</button></div><div class="control"><span>Online examples only</span><button id="online" class="switch '+(onlineOnly?'on':'')+'">'+(onlineOnly?'On':'Off')+'</button></div><p>Use the floating chips on the map to display members, events, or Circles.</p><button class="primary" id="done">Done</button>'));$("members").onclick=function(){showMembers=!showMembers;render();filters()};$("online").onclick=function(){onlineOnly=!onlineOnly;render();filters()};$("done").onclick=close}
+function tab(t){if(t==="map"){close();return}if(t==="discover"){filters();return}if(t==="chats"){open(frame("Chats",'<p>Private messaging will be available after adult verification, secure accounts, and backend integration.</p><div class="warn">No real messaging is enabled in this demo.</div>'));return}var type=t==="events"?"event":"circle",items=data.filter(function(p){return p.city===city&&p.type===type});var body='<p class="muted">Fictional listings in '+safe(cities[city].name)+'</p>'+items.map(function(p){return '<div class="listing"><div><strong>'+safe(p.name)+'</strong><div class="muted">'+safe(p.interests.join(" · "))+'</div></div><button data-open="'+safe(p.id)+'">View</button></div>'}).join("");open(frame(t==="events"?"Events":"Circles",body));document.querySelectorAll("[data-open]").forEach(function(b){b.onclick=function(){profile(data.find(function(p){return p.id===b.dataset.open}))}})}
+function locate(){if(!navigator.geolocation){announce("Location services aren't available in this browser.");return}announce("Requesting location permission…");navigator.geolocation.getCurrentPosition(function(pos){var coord=[pos.coords.latitude,pos.coords.longitude];if(locationMarker)locationMarker.remove();locationMarker=L.circleMarker(coord,{radius:8,weight:3,color:"#d9dfff",fillColor:"#8399ff",fillOpacity:1}).addTo(map);map.flyTo(coord,13);announce("Device location shown on your map. No SMUT! account tracking is connected.")},function(){announce("Location unavailable or permission denied.")},{enableHighAccuracy:false,timeout:10000,maximumAge:60000})}
+$("overlay").onclick=close;$("cities").onclick=cityPicker;$("filters").onclick=filters;$("zin").onclick=function(){if(map)map.zoomIn()};$("zout").onclick=function(){if(map)map.zoomOut()};$("locate").onclick=locate;
+document.querySelectorAll("[data-kind]").forEach(function(b){b.onclick=function(){setKind(b.dataset.kind)}});
+document.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){document.querySelectorAll("[data-tab]").forEach(function(x){x.classList.toggle("active",x===b)});tab(b.dataset.tab)}});
+if(typeof L==="undefined"){$("maperror").style.display="block";announce("Map library did not load. Check your internet connection.");return}
+map=L.map("map",{zoomControl:false,worldCopyJump:true}).setView(cities.dc.point,13);
+L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
+render();
+})();
+</script>
+</body></html>
