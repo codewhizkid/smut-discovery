@@ -103,7 +103,7 @@ document.querySelectorAll("[data-kind]").forEach(function(b){b.onclick=function(
 document.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){document.querySelectorAll("[data-tab]").forEach(function(x){x.classList.toggle("active",x===b)});tab(b.dataset.tab)}});
 if(typeof L==="undefined"){$("maperror").style.display="block";announce("Map library did not load. Check your internet connection.");return}
 map=L.map("map",{zoomControl:false,worldCopyJump:true}).setView(cities.dc.point,13);
-L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'}).addTo(map);
 render();
 })();
 </script>
